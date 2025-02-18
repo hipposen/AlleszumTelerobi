@@ -173,7 +173,7 @@ void setup() {
   Serial.print("Camera Ready! Use 'http://");
   Serial.print(WiFi.localIP());
   Serial.println("' to connect");
-  Serial.print("or use MDNs with: http://telecam.local")
+  Serial.print("or use MDNs with: http://telecam.local");
 }
 
 void loop() {
