@@ -1,5 +1,5 @@
 #include <Arduino.h>
-
+#include <ESPmDNS.h>
 #include "esp_camera.h"
 // #include <WiFi.h>
 
@@ -61,7 +61,12 @@ void setup() {
         //if you get here you have connected to the WiFi    
         Serial.println("connected...yeey :)");
     }
-
+    if (!MDNS.begin("telecam")) {
+      Serial.println("Error setting up MDNS responder!");
+      while (1) {
+        delay(1000);
+      }
+    }
 
   Serial.setDebugOutput(true);
   Serial.println();
@@ -164,10 +169,11 @@ void setup() {
   // Serial.println("WiFi connected");
 
   startCameraServer();
-
+  MDNS.addService("http", "tcp", 80);
   Serial.print("Camera Ready! Use 'http://");
   Serial.print(WiFi.localIP());
-   Serial.println("' to connect");
+  Serial.println("' to connect");
+  Serial.print("or use MDNs with: http://telecam.local")
 }
 
 void loop() {
