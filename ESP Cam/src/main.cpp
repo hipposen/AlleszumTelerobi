@@ -61,7 +61,7 @@ void setup() {
         //if you get here you have connected to the WiFi    
         Serial.println("connected...yeey :)");
     }
-    if (!MDNS.begin("telecam")) {
+    if (!MDNS.begin("espcam")) {
       Serial.println("Error setting up MDNS responder!");
       while (1) {
         delay(1000);
@@ -91,7 +91,7 @@ void setup() {
   config.pin_pwdn = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
-  config.frame_size = FRAMESIZE_UXGA;
+  config.frame_size = FRAMESIZE_VGA;
   config.pixel_format = PIXFORMAT_JPEG;  // for streaming
   //config.pixel_format = PIXFORMAT_RGB565; // for face detection/recognition
   config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
@@ -103,17 +103,18 @@ void setup() {
   //                      for larger pre-allocated frame buffer.
   if (config.pixel_format == PIXFORMAT_JPEG) {
     if (psramFound()) {
+      config.frame_size = FRAMESIZE_VGA;
       config.jpeg_quality = 10;
       config.fb_count = 2;
       config.grab_mode = CAMERA_GRAB_LATEST;
     } else {
       // Limit the frame size when PSRAM is not available
-      config.frame_size = FRAMESIZE_SVGA;
+      config.frame_size = FRAMESIZE_VGA;
       config.fb_location = CAMERA_FB_IN_DRAM;
     }
   } else {
     // Best option for face detection/recognition
-    config.frame_size = FRAMESIZE_240X240;
+    config.frame_size = FRAMESIZE_VGA;
 #if CONFIG_IDF_TARGET_ESP32S3
     config.fb_count = 2;
 #endif
@@ -140,7 +141,7 @@ void setup() {
   }
   // drop down frame size for higher initial frame rate
   if (config.pixel_format == PIXFORMAT_JPEG) {
-    s->set_framesize(s, FRAMESIZE_QVGA);
+    s->set_framesize(s, FRAMESIZE_VGA);
   }
 
 #if defined(CAMERA_MODEL_M5STACK_WIDE) || defined(CAMERA_MODEL_M5STACK_ESP32CAM)
@@ -173,7 +174,7 @@ void setup() {
   Serial.print("Camera Ready! Use 'http://");
   Serial.print(WiFi.localIP());
   Serial.println("' to connect");
-  Serial.print("or use MDNs with: http://telecam.local");
+  Serial.print("or use MDNs with: http://espcam.local");
 }
 
 void loop() {

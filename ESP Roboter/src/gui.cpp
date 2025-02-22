@@ -8,6 +8,13 @@ int graphId;
 int millisLabelId;
 int testSwitchId;
 
+unsigned long lastMovementTime = 0;
+unsigned long idleThreshold = 3 * 60 * 60 * 1000; // 3 Stunden in Millisekunden
+//unsigned long idleThreshold = 6 * 60 * 1000; // 6 min in Millisekunden
+bool warningDisplayed = false;
+uint16_t warningLabel;
+uint16_t cameraLabel;
+
 void steuerungCallbackHandler(Control *sender, int value)
 {
     switch (value)
@@ -64,6 +71,10 @@ void steuerungCallbackHandler(Control *sender, int value)
         break;
     }
 
+    lastMovementTime = millis();
+    warningDisplayed = false;
+    ESPUI.updateLabel(warningLabel, "<script>function hideStatus(){document.getElementById('id1').style.display = 'none';} setTimeout(function(){hideStatus();}, 1000);</script>");
+
     Serial.print(" ");
     Serial.println(sender->id);
 }
@@ -86,11 +97,15 @@ void setupGui()
     ESPUI.setVerbosity(Verbosity::VerboseJSON);
     Serial.begin(115200);
 
-    (void)ESPUI.label("Kamera", ControlColor::Carrot, "<img src='http://telecam.local:81/stream' width='320'>");
-    (void)ESPUI.pad("Steuerung", &steuerungCallbackHandler, ControlColor::Carrot);
-    (void)ESPUI.slider("Kopf", &servoCallbackHandler, ControlColor::Carrot, getServoPos(), 0, 100, nullptr);
-    ESPUI.sliderContinuous = true;
 
+    warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "<script>document.getElementById('id1').style.display = 'none';</script>");
+    cameraLabel = ESPUI.label("Kamera", ControlColor::Turquoise, "<img src='http://espcam.local:81/stream' style='width:100%; height:auto; max-width:640px;'>");
+    //(void)ESPUI.label("Kamera", ControlColor::Turquoise, "<img src='http://espcam.local:81/stream' style='width:100%; height:auto; max-width:640px;'>");
+    (void)ESPUI.pad("Steuerung", &steuerungCallbackHandler, ControlColor::Turquoise);
+    (void)ESPUI.slider("Kopf", &servoCallbackHandler, ControlColor::Turquoise, getServoPos(), 0, 100, nullptr);
+
+    ESPUI.sliderContinuous = true;
+    ESPUI.setElementStyle(cameraLabel, "background-color: transparent;");
     /*
      * .begin loads and serves all files from PROGMEM directly.
      * If you want to serve the files from LITTLEFS use ESPUI.beginLITTLEFS
@@ -113,6 +128,9 @@ void setupGui()
 
     ESPUI.begin("TeleRobo Control");
     Serial.println(WiFi.getMode() == WIFI_AP ? WiFi.softAPIP() : WiFi.localIP());
+
+
+  
 }
 
 void guiLoop()
@@ -129,4 +147,17 @@ void guiLoop()
         // ESPUI.print(millisLabelId, String(distance));
         oldTime = millis();
     }
+
+
+
+    unsigned long currentTime = millis();
+    
+
+    if (currentTime - lastMovementTime >= idleThreshold - (5 * 60 * 1000) && !warningDisplayed) {
+        ESPUI.updateVisibility(warningLabel, true);
+        ESPUI.updateLabel(warningLabel, "In 5 Minuten geht der Roboter aus, bitte bewege ihn kurz damit er anbleibt.");
+        warningDisplayed = true;
+        
+    }
+
 }
