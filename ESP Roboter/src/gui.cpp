@@ -9,8 +9,8 @@ int millisLabelId;
 int testSwitchId;
 
 unsigned long lastMovementTime = 0;
-unsigned long idleThreshold = 3 * 60 * 60 * 1000; // 3 Stunden in Millisekunden
-//unsigned long idleThreshold = 6 * 60 * 1000; // 6 min in Millisekunden
+//unsigned long idleThreshold = 3 * 60 * 60 * 1000; // 3 Stunden in Millisekunden
+unsigned long idleThreshold = 6 * 60 * 1000; // 6 min in Millisekunden
 bool warningDisplayed = false;
 uint16_t warningLabel;
 uint16_t cameraLabel;
@@ -73,8 +73,7 @@ void steuerungCallbackHandler(Control *sender, int value)
 
     lastMovementTime = millis();
     warningDisplayed = false;
-    ESPUI.updateLabel(warningLabel, "<script>function hideStatus(){document.getElementById('id1').style.display = 'none';} setTimeout(function(){hideStatus();}, 1000);</script>");
-
+    ESPUI.updateVisibility(warningLabel, false);
     Serial.print(" ");
     Serial.println(sender->id);
 }
@@ -98,10 +97,11 @@ void setupGui()
     Serial.begin(115200);
 
 
-    warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "<script>document.getElementById('id1').style.display = 'none';</script>");
+    //warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "<script>document.getElementById('id1').style.display = 'none';</script>");
+    warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "Ready"); 
+    ESPUI.updateVisibility(warningLabel, false);
     cameraLabel = ESPUI.label("Kamera", ControlColor::Turquoise, "<img src='http://espcam.local:81/stream' style='width:100%; height:auto; max-width:640px;'>");
-    //(void)ESPUI.label("Kamera", ControlColor::Turquoise, "<img src='http://espcam.local:81/stream' style='width:100%; height:auto; max-width:640px;'>");
-    (void)ESPUI.pad("Steuerung", &steuerungCallbackHandler, ControlColor::Turquoise);
+    (void)ESPUI.padWithCenter("Steuerung", &steuerungCallbackHandler, ControlColor::Turquoise);
     (void)ESPUI.slider("Kopf", &servoCallbackHandler, ControlColor::Turquoise, getServoPos(), 0, 100, nullptr);
 
     ESPUI.sliderContinuous = true;
@@ -127,10 +127,7 @@ void setupGui()
     // graphId = ESPUI.graph("Distance (cm)", ControlColor::Wetasphalt);
 
     ESPUI.begin("TeleRobo Control");
-    Serial.println(WiFi.getMode() == WIFI_AP ? WiFi.softAPIP() : WiFi.localIP());
-
-
-  
+    Serial.println(WiFi.getMode() == WIFI_AP ? WiFi.softAPIP() : WiFi.localIP());  
 }
 
 void guiLoop()
@@ -141,23 +138,19 @@ void guiLoop()
 
     if (millis() - oldTime > 50)
     {
-
         // int distance = readUltrasonic();
         //  ESPUI.addGraphPoint(graphId, distance);
         // ESPUI.print(millisLabelId, String(distance));
         oldTime = millis();
     }
 
-
-
     unsigned long currentTime = millis();
     
-
     if (currentTime - lastMovementTime >= idleThreshold - (5 * 60 * 1000) && !warningDisplayed) {
         ESPUI.updateVisibility(warningLabel, true);
+        Serial.println("Shutdown Warning");
         ESPUI.updateLabel(warningLabel, "In 5 Minuten geht der Roboter aus, bitte bewege ihn kurz damit er anbleibt.");
-        warningDisplayed = true;
-        
+        warningDisplayed = true;       
     }
 
 }
