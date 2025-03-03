@@ -9,8 +9,8 @@ int millisLabelId;
 int testSwitchId;
 
 unsigned long lastMovementTime = 0;
-//unsigned long idleThreshold = 3 * 60 * 60 * 1000; // 3 Stunden in Millisekunden
-unsigned long idleThreshold = 6 * 60 * 1000; // 6 min in Millisekunden
+unsigned long idleThreshold = 3 * 60 * 60 * 1000; // 3 Stunden in Millisekunden
+//unsigned long idleThreshold = 6 * 60 * 1000; // 6 min in Millisekunden
 bool warningDisplayed = false;
 uint16_t warningLabel;
 uint16_t cameraLabel;
