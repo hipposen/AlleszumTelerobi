@@ -97,12 +97,12 @@ void setupGui()
     Serial.begin(115200);
 
 
-    //warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "<script>document.getElementById('id1').style.display = 'none';</script>");
-    warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "Ready"); 
-    ESPUI.updateVisibility(warningLabel, false);
-    cameraLabel = ESPUI.label("Kamera", ControlColor::Turquoise, "<img src='http://espcam.local:81/stream' style='width:100%; height:auto; max-width:640px;'>");
-    (void)ESPUI.padWithCenter("Steuerung", &steuerungCallbackHandler, ControlColor::Turquoise);
-    (void)ESPUI.slider("Kopf", &servoCallbackHandler, ControlColor::Turquoise, getServoPos(), 0, 100, nullptr);
+    warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "<script>document.getElementById('id1').style.display = 'none';</script>");
+    //warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "Ready"); 
+    //ESPUI.updateVisibility(warningLabel, false);
+    cameraLabel = ESPUI.label("Kamera", ControlColor::Emerald, "<img src='http://espcam.local:81/stream' style='width:100%; height:auto; max-width:640px;'>");
+    (void)ESPUI.padWithCenter("Steuerung", &steuerungCallbackHandler, ControlColor::Emerald);
+    (void)ESPUI.slider("Kopf", &servoCallbackHandler, ControlColor::Emerald, getServoPos(), 0, 100, nullptr);
 
     ESPUI.sliderContinuous = true;
     ESPUI.setElementStyle(cameraLabel, "background-color: transparent;");
