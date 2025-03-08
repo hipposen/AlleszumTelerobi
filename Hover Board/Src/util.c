@@ -1289,6 +1289,10 @@ void usart_process_command(SerialCommand *command_in, SerialCommand *command_out
       }
     }
   }
+  if (command_in->start == 0xCAFE)
+  {
+    poweroff();
+  }
   #endif
 }
 #endif

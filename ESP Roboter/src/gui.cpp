@@ -152,5 +152,8 @@ void guiLoop()
         ESPUI.updateLabel(warningLabel, "In 5 Minuten geht der Roboter aus, bitte bewege ihn kurz damit er anbleibt.");
         warningDisplayed = true;       
     }
+    if (currentTime - lastMovementTime >= idleThreshold) {
+        shutdown();
+    }
 
 }

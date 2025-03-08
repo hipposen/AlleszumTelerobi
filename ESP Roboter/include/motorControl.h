@@ -8,6 +8,7 @@ void right();
 void stop();
 void leftrightRelease();
 void resetMotor();
+void shutdown();
 void updateSerial();
 void setValues(int left, int right);
 void safetyDance();
