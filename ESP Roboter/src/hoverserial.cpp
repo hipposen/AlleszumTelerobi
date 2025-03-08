@@ -42,6 +42,7 @@ uint16_t bufStartFrame; // Buffer Start Frame
 byte *p;                // Pointer declaration for the new received data
 byte incomingByte;
 byte incomingBytePrev;
+bool shutdownTriggered = false;
 
 typedef struct
 {
@@ -85,6 +86,19 @@ void Send(int16_t uSteer, int16_t uSpeed)
 
     // Write to Serial
     Serial1.write((uint8_t *)&Command, sizeof(Command));
+}
+
+void sendShutdown()
+{
+    if (!shutdownTriggered)
+    {
+        Command.start = (uint16_t)0xCAFE;
+        Command.steer = (int16_t)0;
+        Command.speed = (int16_t)0;
+        Command.checksum = (uint16_t)(Command.start ^ Command.steer ^ Command.speed);
+        Serial1.write((uint8_t *)&Command, sizeof(Command));
+        shutdownTriggered = true;
+    }
 }
 
 // ########################## RECEIVE ##########################

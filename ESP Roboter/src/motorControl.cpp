@@ -48,6 +48,11 @@ void resetMotor()
     stop();
 }
 
+void shutdown()
+{
+    sendShutdown();
+}
+
 void setValues(int left, int right)
 {
     valueLeft = left;
