@@ -56,7 +56,8 @@ extern uint8_t enable;                  // global variable for motor enable
 extern uint8_t nunchuk_data[6];
 extern volatile uint32_t timeoutCntGen; // global counter for general timeout counter
 extern volatile uint8_t  timeoutFlgGen; // global flag for general timeout counter
-extern volatile uint32_t main_loop_counter;
+extern volatile uint32_t main_loop_counter; 
+extern uint32_t    inactivity_timeout_counter;
 
 #if defined(CONTROL_PPM_LEFT) || defined(CONTROL_PPM_RIGHT)
 extern volatile uint16_t ppm_captured_value[PPM_NUM_CHANNELS+1];
@@ -1291,7 +1292,7 @@ void usart_process_command(SerialCommand *command_in, SerialCommand *command_out
   }
   if (command_in->start == 0xCAFE)
   {
-    poweroff();
+    inactivity_timeout_counter = (INACTIVITY_TIMEOUT * 60 * 1000) / (DELAY_IN_MAIN_LOOP + 1);
   }
   #endif
 }

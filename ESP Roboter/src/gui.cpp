@@ -2,6 +2,7 @@
 #include "motorControl.h"
 #include "ultrasonic.h"
 #include "servo.h"
+#include <Wire.h>
 
 int statusLabelId;
 int graphId;
@@ -10,10 +11,25 @@ int testSwitchId;
 
 unsigned long lastMovementTime = 0;
 unsigned long idleThreshold = 3 * 60 * 60 * 1000; // 3 Stunden in Millisekunden
-//unsigned long idleThreshold = 6 * 60 * 1000; // 6 min in Millisekunden
+//unsigned long idleThreshold = 1 * 60 * 1000; // 6 min in Millisekunden
 bool warningDisplayed = false;
 uint16_t warningLabel;
 uint16_t cameraLabel;
+const int I2C_ADDRESS = 8;
+String receivedIP = "";
+
+
+void receiveEvent(int bytes) {
+    char buffer[16];
+    Wire.readBytes(buffer, bytes);
+    buffer[bytes] = '\0';  // Nullterminierung für String
+    receivedIP = String(buffer);  // String-Objekt erstellen
+
+    Serial.print("Received IP: ");
+    Serial.println(receivedIP);
+}
+
+
 
 void steuerungCallbackHandler(Control *sender, int value)
 {
@@ -96,6 +112,8 @@ void setupGui()
     ESPUI.setVerbosity(Verbosity::VerboseJSON);
     Serial.begin(115200);
 
+    Wire.begin(I2C_ADDRESS);
+    Wire.onReceive(receiveEvent);
 
     warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "<script>document.getElementById('id1').style.display = 'none';</script>");
     //warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "Ready"); 
@@ -129,6 +147,7 @@ void setupGui()
     ESPUI.begin("TeleRobo Control");
     Serial.println(WiFi.getMode() == WIFI_AP ? WiFi.softAPIP() : WiFi.localIP());  
 }
+
 
 void guiLoop()
 {

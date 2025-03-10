@@ -159,7 +159,7 @@ static int16_t    speed;                // local variable for speed. -1000 to 10
 #endif
 
 static uint32_t    buzzerTimer_prev = 0;
-static uint32_t    inactivity_timeout_counter;
+uint32_t    inactivity_timeout_counter;
 static MultipleTap MultipleTapBrake;    // define multiple tap functionality for the Brake pedal
 
 static uint16_t rate = RATE; // Adjustable rate to support multiple drive modes on startup

@@ -3,7 +3,7 @@
 #include "ultrasonic.h"
 #include <arduino.h>
 int LeftMotorPin = 23;
-int rightMotorPin = 22;
+int rightMotorPin = 19;
 int valueLeft, valueRight = 0;
 void setupMotor()
 {
