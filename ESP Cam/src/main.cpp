@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <ESPmDNS.h>
 #include "esp_camera.h"
+#include <Wire.h>
+
 // #include <WiFi.h>
 
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
@@ -41,7 +43,7 @@
 // ===========================
 // const char *ssid =  WIFI_SSID;
 // const char *password = WIFI_PASSWORD;
-
+const int I2C_ADDRESS = 8;  // ESP32-S Adresse
 void startCameraServer();
 void setupLedFlash(int pin);
 
@@ -70,6 +72,15 @@ void setup() {
         // ESP.restart();
     } 
     else {
+      String ip = WiFi.localIP().toString();
+      Serial.println("Connected! IP: " + ip);
+
+      // IP-Adresse senden
+      Wire.beginTransmission(I2C_ADDRESS);
+      Wire.write(ip.c_str());
+      Wire.endTransmission();
+
+
         //if you get here you have connected to the WiFi    
         Serial.println("connected...yeey :)");
     }

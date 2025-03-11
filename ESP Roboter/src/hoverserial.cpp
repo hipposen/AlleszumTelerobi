@@ -27,7 +27,7 @@
 // ########################## DEFINES ##########################
 #define HOVER_SERIAL_BAUD 115200 // [-] Baud rate for HoverSerial (used to communicate with the hoverboard)
 #define RXPIN 23                 // GPIO 4 => RX for Serial1
-#define TXPIN 22                 // GPIO 5 => TX for Serial1
+#define TXPIN 19                 // GPIO 5 => TX for Serial1
 #define START_FRAME 0xABCD       // [-] Start frme definition for reliable serial communication
 #define TIME_SEND 100            // [ms] Sending time interval
 #define SPEED_MAX_TEST 1000      // [-] Maximum speed for testing
@@ -42,6 +42,7 @@ uint16_t bufStartFrame; // Buffer Start Frame
 byte *p;                // Pointer declaration for the new received data
 byte incomingByte;
 byte incomingBytePrev;
+bool shutdownTriggered = false;
 
 typedef struct
 {
@@ -85,6 +86,19 @@ void Send(int16_t uSteer, int16_t uSpeed)
 
     // Write to Serial
     Serial1.write((uint8_t *)&Command, sizeof(Command));
+}
+
+void sendShutdown()
+{
+    if (!shutdownTriggered)
+    {
+        Command.start = (uint16_t)0xCAFE;
+        Command.steer = (int16_t)0;
+        Command.speed = (int16_t)0;
+        Command.checksum = (uint16_t)(Command.start ^ Command.steer ^ Command.speed);
+        Serial1.write((uint8_t *)&Command, sizeof(Command));
+        shutdownTriggered = true;
+    }
 }
 
 // ########################## RECEIVE ##########################
