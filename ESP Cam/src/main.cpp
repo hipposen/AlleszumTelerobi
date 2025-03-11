@@ -21,11 +21,11 @@
 //#define CAMERA_MODEL_ESP32S3_EYE // Has PSRAM
 //#define CAMERA_MODEL_M5STACK_PSRAM // Has PSRAM
 //#define CAMERA_MODEL_M5STACK_V2_PSRAM // M5Camera version B Has PSRAM
-#define CAMERA_MODEL_M5STACK_WIDE // Has PSRAM
+//#define CAMERA_MODEL_M5STACK_WIDE // Has PSRAM
 //#define CAMERA_MODEL_M5STACK_ESP32CAM // No PSRAM
 //#define CAMERA_MODEL_M5STACK_UNITCAM // No PSRAM
 //#define CAMERA_MODEL_M5STACK_CAMS3_UNIT  // Has PSRAM
-//#define CAMERA_MODEL_AI_THINKER // Has PSRAM
+#define CAMERA_MODEL_AI_THINKER // Has PSRAM
 //#define CAMERA_MODEL_TTGO_T_JOURNAL // No PSRAM
 //#define CAMERA_MODEL_XIAO_ESP32S3 // Has PSRAM
 // ** Espressif Internal Boards **
@@ -45,8 +45,20 @@
 void startCameraServer();
 void setupLedFlash(int pin);
 
+void status()
+{
+  Serial1.println("IP:");
+  Serial1.println(WiFi.localIP());
+  Serial1.println("SSID:");
+  Serial1.println(WiFi.SSID());
+  Serial1.println("PSK:");
+  Serial1.println(WiFi.psk());
+}
+
+
 void setup() {
   Serial.begin(115200);
+  Serial1.begin(115200,SERIAL_8N1,14,15);
     WiFiManager wm;
  bool res;
     // res = wm.autoConnect(); // auto generated AP name from chipid
@@ -172,12 +184,17 @@ void setup() {
   startCameraServer();
   MDNS.addService("http", "tcp", 80);
   Serial.print("Camera Ready! Use 'http://");
-  Serial.print(WiFi.localIP());
+  Serial.print(WiFi.localIP());  
   Serial.println("' to connect");
-  Serial.print("or use MDNs with: http://espcam.local");
+  Serial.print("or use MDNs with: http://nodecam.local");  
+  status();
+  Serial1.println("IP:");
+  Serial1.println(WiFi.localIP());
 }
+
 
 void loop() {
   // Do nothing. Everything is done in another task by the web server
   delay(10000);
+ 
 }
