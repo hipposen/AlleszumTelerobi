@@ -2,7 +2,7 @@
 #include "motorControl.h"
 #include "ultrasonic.h"
 #include "servo.h"
-#include <Wire.h>
+
 
 int statusLabelId;
 int graphId;
@@ -12,23 +12,17 @@ int testSwitchId;
 unsigned long lastMovementTime = 0;
 unsigned long idleThreshold = 3 * 60 * 60 * 1000; // 3 Stunden in Millisekunden
 //unsigned long idleThreshold = 1 * 60 * 1000; // 6 min in Millisekunden
+
 bool warningDisplayed = false;
 uint16_t warningLabel;
 uint16_t cameraLabel;
-const int I2C_ADDRESS = 8;
-String receivedIP = "";
+String receivedIP = "espcam.local";
+String receivedText = "";
 
-
-void receiveEvent(int bytes) {
-    char buffer[16];
-    Wire.readBytes(buffer, bytes);
-    buffer[bytes] = '\0';  // Nullterminierung für String
-    receivedIP = String(buffer);  // String-Objekt erstellen
-
-    Serial.print("Received IP: ");
-    Serial.println(receivedIP);
-}
-
+int ind1,ind2,ind3;  
+String IPFromCam;
+String SSIDFromCam;
+String PSKFromCam;
 
 
 void steuerungCallbackHandler(Control *sender, int value)
@@ -111,9 +105,7 @@ void setupGui()
 {
     ESPUI.setVerbosity(Verbosity::VerboseJSON);
     Serial.begin(115200);
-
-    Wire.begin(I2C_ADDRESS);
-    Wire.onReceive(receiveEvent);
+    Serial2.begin(115200,SERIAL_8N1,17,16);
 
     warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "<script>document.getElementById('id1').style.display = 'none';</script>");
     //warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "Ready"); 
@@ -148,12 +140,53 @@ void setupGui()
     Serial.println(WiFi.getMode() == WIFI_AP ? WiFi.softAPIP() : WiFi.localIP());  
 }
 
+bool readStringUntil(String& input, char until_c) {
+    
+    while (Serial2.available()) {
+      char c = Serial2.read();
+      input += c;
+      if (c == until_c) {             
+        return true;
+      }      
+    }    
+    return false;
+  }
 
+  
 void guiLoop()
 {
     static long oldTime = 0;
     static bool testSwitchState = false;
     delay(2);
+    
+    if (readStringUntil(receivedText, '\n')) { // read until find newline
+        if(receivedText.length() > 0) 
+        {
+            //Serial.println(receivedText);    
+
+            ind1 = receivedText.indexOf(',');  
+            IPFromCam =  receivedText.substring(0, ind1);   
+            ind2 = receivedText.indexOf(',', ind1+1 );   
+            SSIDFromCam = receivedText.substring(ind1+1, ind2);  
+            ind3 = receivedText.indexOf(',', ind2+1 );
+            PSKFromCam = receivedText.substring(ind2+1, ind3);
+            String camString = "";
+            String camString1 = "<img src='http://";            
+            String camString2 = ":81/stream' style='width:100%; height:auto; max-width:640px;'>"                ;
+            
+            camString = camString1 + IPFromCam + camString2;
+            ESPUI.updateLabel(cameraLabel,camString);
+            
+            Serial.println("IP von CAM:");
+            Serial.println(IPFromCam);
+
+            Serial.println(SSIDFromCam);
+            //Serial.println(PSKFromCam);
+        }
+
+        receivedText = ""; // clear after processing for next line
+      }
+    
 
     if (millis() - oldTime > 50)
     {

@@ -49,12 +49,12 @@ void setupLedFlash(int pin);
 
 void status()
 {
-  Serial1.println("IP:");
-  Serial1.println(WiFi.localIP());
-  Serial1.println("SSID:");
-  Serial1.println(WiFi.SSID());
-  Serial1.println("PSK:");
-  Serial1.println(WiFi.psk());
+  Serial1.print(WiFi.localIP());
+  Serial1.print(",");
+  Serial1.print(WiFi.SSID());
+  Serial1.print(",");
+  Serial1.print(WiFi.psk());
+  Serial1.println();
 }
 
 
@@ -197,10 +197,8 @@ void setup() {
   Serial.print("Camera Ready! Use 'http://");
   Serial.print(WiFi.localIP());  
   Serial.println("' to connect");
-  Serial.print("or use MDNs with: http://nodecam.local");  
-  status();
-  Serial1.println("IP:");
-  Serial1.println(WiFi.localIP());
+  Serial.print("or use MDNs with: http://espcam.local");  
+  status();  
 }
 
 
