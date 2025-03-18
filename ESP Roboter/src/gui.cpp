@@ -105,7 +105,7 @@ void setupGui()
 {
     ESPUI.setVerbosity(Verbosity::VerboseJSON);
     Serial.begin(115200);
-    Serial2.begin(115200,SERIAL_8N1,17,16);
+    Serial2.begin(115200,SERIAL_8N1,22,21);
 
     warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "<script>document.getElementById('id1').style.display = 'none';</script>");
     //warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "Ready"); 
@@ -145,7 +145,7 @@ bool readStringUntil(String& input, char until_c) {
     while (Serial2.available()) {
       char c = Serial2.read();
       input += c;
-      if (c == until_c) {             
+      if (c == until_c || input.length() > 128) {             
         return true;
       }      
     }    
