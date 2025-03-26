@@ -3,6 +3,5 @@
 #define WEBSERV_H
 
 void setupWebserver();
-void webserverLoop();
 
 #endif

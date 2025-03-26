@@ -22,5 +22,3 @@ void Receive();
 void serialLoop(void);
 
 #endif
-
-

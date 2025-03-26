@@ -3,13 +3,14 @@
 #include "ultrasonic.h"
 #include "servo.h"
 #include "hoverserial.h"
-
+#include "camserial.h"
 
 int statusLabelId;
 int graphId;
 int millisLabelId;
 int testSwitchId;
-int intAkkuanzeige; 
+int intAkkuanzeige;
+bool useIpFromCam = false;
 
 unsigned long lastMovementTime = 0;
 unsigned long idleThreshold = 3 * 60 * 60 * 1000; // 3 Stunden in Millisekunden
@@ -20,16 +21,6 @@ uint16_t warningLabel;
 uint16_t cameraLabel;
 uint16_t batteryLabel;
 String receivedIP = "espcam.local";
-String receivedText = "";
-uint8_t abbruch = 0;
-char receivedChars[32];
-boolean newData = false;
-int ind1,ind2,ind3;  
-String IPFromCam;
-String SSIDFromCam;
-String PSKFromCam;
-
-
 
 struct AkkuSpannung {
     float spannung;
@@ -44,10 +35,6 @@ AkkuSpannung akkuTabelle[] = {
     {35.8, 25}, {35.6, 20}, {35.2, 15}, {34.8, 10}, {34.3, 5},
     {33.7, 0}
 };
-
-
-
-
 
 void steuerungCallbackHandler(Control *sender, int value)
 {
@@ -128,12 +115,8 @@ void servoCallbackHandler(Control *sender, int value, void *)
 void setupGui()
 {
     ESPUI.setVerbosity(Verbosity::VerboseJSON);
-    Serial.begin(115200);
-    Serial2.begin(9600,SERIAL_8N1,22,21);
-
-
     warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "<script>document.getElementById('id1').style.display = 'none';</script>");
-    //warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "Ready"); 
+    //warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "Ready");
     //ESPUI.updateVisibility(warningLabel, false);
     cameraLabel = ESPUI.label("Kamera", ControlColor::Emerald, "<img src='http://espcam.local:81/stream' style='width:100%; height:auto; max-width:640px;'>");
     (void)ESPUI.padWithCenter("Steuerung", &steuerungCallbackHandler, ControlColor::Emerald);
@@ -142,7 +125,7 @@ void setupGui()
 
     ESPUI.sliderContinuous = true;
     ESPUI.setElementStyle(cameraLabel, "background-color: transparent;");
-    
+
     /*
      * .begin loads and serves all files from PROGMEM directly.
      * If you want to serve the files from LITTLEFS use ESPUI.beginLITTLEFS
@@ -164,45 +147,7 @@ void setupGui()
     // graphId = ESPUI.graph("Distance (cm)", ControlColor::Wetasphalt);
 
     ESPUI.begin("TeleRobo Control");
-    Serial.println(WiFi.getMode() == WIFI_AP ? WiFi.softAPIP() : WiFi.localIP());  
-}
-
-void recvWithStartEndMarkers()
-{
-   static boolean recvInProgress = false;
-   static byte ndx = 0;
-   char startMarker = '<';
-   char endMarker = '>';
-   char rc;
-
-   while (Serial2.available() > 0 && newData == false)
-   {
-      rc = Serial2.read();
-     
-      if (recvInProgress == true)
-      {
-         if (rc != endMarker)
-         {
-            receivedChars[ndx] = rc;
-            ndx++;
-            if (ndx >= 32)
-            {
-               ndx = 32 - 1;
-            }
-         }
-         else
-         {
-            receivedChars[ndx] = '\0';
-            recvInProgress = false;
-            ndx = 0;
-            newData = true;                  
-         }
-      }
-      else if (rc == startMarker)
-      {
-         recvInProgress = true;
-      }      
-   }
+    Serial.println(WiFi.getMode() == WIFI_AP ? WiFi.softAPIP() : WiFi.localIP());
 }
 
 // Funktion zur Berechnung des Akkustands mit 5%-Schritten
@@ -217,47 +162,26 @@ int berechneAkkuProzent(float spannung) {
     }
     return 0;
 }
-    
-
-
 
 void guiLoop()
 {
     static long oldTime = 0;
-    static bool testSwitchState = false;
-    delay(2); 
-    recvWithStartEndMarkers();  
-    if (newData == true){ // read until find newline
-        receivedText = receivedChars ;
-        if(receivedText.length() > 0) 
+    delay(2);  //FIXME: why delay?
+
+    if (!useIpFromCam)
+    {
+        String *IPFromCam = getIpAddr();
+        if (IPFromCam != nullptr)
         {
-            //Serial.println(receivedText);    
-
-            ind1 = receivedText.indexOf(',');  
-            IPFromCam =  receivedText.substring(0, ind1);   
-            ind2 = receivedText.indexOf(',', ind1+1 );   
-            SSIDFromCam = receivedText.substring(ind1+1, ind2);  
-            ind3 = receivedText.indexOf(',', ind2+1 );
-            PSKFromCam = receivedText.substring(ind2+1, ind3);
             String camString = "";
-            String camString1 = "<img src='http://";            
+            String camString1 = "<img src='http://";
             String camString2 = ":81/stream' style='width:100%; height:auto; max-width:640px;'>"                ;
-            
-            camString = camString1 + IPFromCam + camString2;
+
+            camString = camString1 + *IPFromCam + camString2;
             ESPUI.updateLabel(cameraLabel,camString);
-            
-            Serial.println("IP von CAM:");
-            Serial.println(IPFromCam);
-
-            Serial.println(SSIDFromCam);
-            //Serial.println(PSKFromCam);
-            
+            useIpFromCam = true;
         }
-
-        receivedText = ""; // clear after processing for next line
-        newData = false;
-      }
-    
+    }
 
     if (millis() - oldTime > 50)
     {
@@ -267,21 +191,20 @@ void guiLoop()
         Receive();
         intAkkuanzeige = berechneAkkuProzent (Feedback.batVoltage/100);
         ESPUI.updateLabel(batteryLabel, String (intAkkuanzeige) + " % " );
-        if (intAkkuanzeige > 60) { ESPUI.setElementStyle (batteryLabel, "background-color: green;");}   
-        if (intAkkuanzeige <=60 && intAkkuanzeige > 30) { ESPUI.setElementStyle (batteryLabel, "background-color: orange;");}   
-        if (intAkkuanzeige <=30 && intAkkuanzeige >=0) { ESPUI.setElementStyle (batteryLabel, "background-color: red;");}   
-          
+        if (intAkkuanzeige > 60) { ESPUI.setElementStyle (batteryLabel, "background-color: green;");}
+        if (intAkkuanzeige <=60 && intAkkuanzeige > 30) { ESPUI.setElementStyle (batteryLabel, "background-color: orange;");}
+        if (intAkkuanzeige <=30 && intAkkuanzeige >=0) { ESPUI.setElementStyle (batteryLabel, "background-color: red;");}
 
         oldTime = millis();
     }
 
     unsigned long currentTime = millis();
-    
+
     if (currentTime - lastMovementTime >= idleThreshold - (5 * 60 * 1000) && !warningDisplayed) {
         ESPUI.updateVisibility(warningLabel, true);
         Serial.println("Shutdown Warning");
         ESPUI.updateLabel(warningLabel, "In 5 Minuten geht der Roboter aus, bitte bewege ihn kurz damit er anbleibt.");
-        warningDisplayed = true;       
+        warningDisplayed = true;
     }
     if (currentTime - lastMovementTime >= idleThreshold) {
         shutdown();
