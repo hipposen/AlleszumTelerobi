@@ -202,6 +202,7 @@ void setup() {
 
 void loop() {
   // Do nothing. Everything is done in another task by the web server
-  delay(10000);
- 
+  delay(1000);
+  Serial.println("loop"); //maddi und Kyrlie sind fies und kyrlie stinki
+  status();
 }

@@ -118,7 +118,7 @@ void setupGui()
     warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "<script>document.getElementById('id1').style.display = 'none';</script>");
     //warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "Ready");
     //ESPUI.updateVisibility(warningLabel, false);
-    cameraLabel = ESPUI.label("Kamera", ControlColor::Emerald, "<img src='http://espcam.local:81/stream' style='width:100%; height:auto; max-width:640px;'>");
+    cameraLabel = ESPUI.label("Kamera", ControlColor::Emerald, "<img src='espcam.local' style='width:100%; height:auto; max-width:640px;'>");
     (void)ESPUI.padWithCenter("Steuerung", &steuerungCallbackHandler, ControlColor::Emerald);
     (void)ESPUI.slider("Kopf", &servoCallbackHandler, ControlColor::Emerald, getServoPos(), 0, 100, nullptr);
     batteryLabel = ESPUI.label("Battery", ControlColor::Emerald,"Test" );

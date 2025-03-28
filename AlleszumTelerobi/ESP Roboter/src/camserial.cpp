@@ -103,9 +103,10 @@ void loopCamserial()
         // TODO: deactivate loop if needed
         // return;
     }
-
     recvWithStartEndMarkers();
+
     if (newData == true) { // read until find newline
+        Serial.printf("loop %d\n", newData);
         receivedText = receivedChars;
         if(receivedText.length() > 0)
         {
@@ -156,8 +157,8 @@ void loopCamserial()
 #if !defined(SSID) || !defined(PSK)
         Serial.println("ESP reset...");
         // TODO: remove comment if it works
-        // delay(500);
-        // ESP.restart();
+         delay(500);
+         ESP.restart();
 #endif
     }
 }
