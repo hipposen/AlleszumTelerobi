@@ -3,24 +3,26 @@
 #include "ota.h"
 #include "hoverserial.h"
 #include "servo.h"
+#include "camserial.h"
 
 #include <ArduinoOTA.h>
 
 void setup(void)
 {
-  serialSetup();
-  setupWebserver();
-  setupGui();
-  setupMotor();
-  setupOTA();
-  ServoSetup();
+    Serial.begin(115200);
+    setupCamserial();
+    serialSetup();
+    ServoSetup();
+    setupWebserver();
+    setupGui();
+    setupOTA();
 }
 
 void loop(void)
 {
-  ArduinoOTA.handle();
-  webserverLoop();
-  guiLoop();
-  updateSerial();
-  //Servoloop();
+    loopCamserial();
+    updateSerial();
+    guiLoop();
+    ArduinoOTA.handle();
+    //Servoloop();
 }

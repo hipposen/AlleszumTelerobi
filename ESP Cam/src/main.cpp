@@ -48,19 +48,21 @@ void setupLedFlash(int pin);
 
 void status()
 {
-Serial2.print(WiFi.localIP());
-   Serial2.print(",");
-   Serial2.print(WiFi.SSID());
-   Serial2.print(",");
-   Serial2.print(WiFi.psk());
-   Serial2.println();
+  Serial2.print("<");
+  Serial2.print(WiFi.localIP());
+  Serial2.print(",");
+  Serial2.print(WiFi.SSID());
+  Serial2.print(",");
+  Serial2.print(WiFi.psk());
+  Serial2.print(">");
+  Serial2.println();
 
 }
 
 
 void setup() {
   Serial.begin(115200);
-  Serial2.begin(115200,SERIAL_8N1,12,13);
+  Serial2.begin(9600,SERIAL_8N1,12,13);
       WiFiManager wm;
  bool res;
     // res = wm.autoConnect(); // auto generated AP name from chipid
@@ -200,6 +202,7 @@ void setup() {
 
 void loop() {
   // Do nothing. Everything is done in another task by the web server
-  delay(10000);
- 
+  delay(1000);
+  Serial.println("loop"); //maddi und Kyrlie sind fies und kyrlie stinki
+  status();
 }

@@ -4,6 +4,6 @@
 void ServoSetup();
 void Servoloop();
 int getServoPos();
-void setServo(int pos);
+void setServo(int posNeu);
 
 #endif

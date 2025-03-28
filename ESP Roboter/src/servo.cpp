@@ -47,8 +47,9 @@ int getServoPos()
     return pos;
 }
 
-void setServo(int pos)
+void setServo(int posNeu)
 {
+    pos = posNeu;
     if ((pos >= 0) && (pos <= 100))
     {
         myservo.write(pos);

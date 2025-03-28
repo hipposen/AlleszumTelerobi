@@ -35,7 +35,9 @@
 
 // #define DEBUG_RX                        // [-] Debug received data. Prints all bytes to serial (comment-out to disable)
 
+#include "hoverserial.h"
 #include <Arduino.h>
+
 // Global variables
 uint8_t idx = 0;        // Index for new data pointer
 uint16_t bufStartFrame; // Buffer Start Frame
@@ -52,19 +54,6 @@ typedef struct
     uint16_t checksum;
 } SerialCommand;
 SerialCommand Command;
-
-typedef struct
-{
-    uint16_t start;
-    int16_t cmd1;
-    int16_t cmd2;
-    int16_t speedR_meas;
-    int16_t speedL_meas;
-    int16_t batVoltage;
-    int16_t boardTemp;
-    uint16_t cmdLed;
-    uint16_t checksum;
-} SerialFeedback;
 SerialFeedback Feedback;
 SerialFeedback NewFeedback;
 

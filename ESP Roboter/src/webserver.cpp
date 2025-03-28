@@ -3,13 +3,8 @@
 #include <DNSServer.h>
 #include "ssid.h"
 #include "motorControl.h"
-/* CONFIG PART, @KRISSI HIER SACHEN EINTRAGEN*/
-
-/* config ende*/
-
-const byte DNS_PORT = 53;
-IPAddress apIP(192, 168, 4, 1);
-DNSServer dnsServer;
+#include "ESPmDNS.h"
+#include "camserial.h"
 
 const char *hostname = "telerobo";
 
@@ -18,59 +13,55 @@ void setupWebserver()
     WiFi.setHostname(hostname);
 
     // try to connect to existing network
+#if defined(SSID) && defined(PSK)
+    Serial.println("Connect WIFI from config");
+    char const ssid[] = SSID;
+    char const password[] = PSK;
     WiFi.begin(ssid, password);
-    Serial.print("\n\nTry to connect to existing network");
+# else
+    Serial.print("\nTry to load WIFI data");
+    String *ssidFromCam = getWifiSsid();
+    String *pskFromCam = getWifiPsk();
 
+    uint8_t timeout = 50;
+    while (((ssidFromCam == nullptr) || (pskFromCam == nullptr)) && (timeout > 0))
     {
-        uint8_t timeout = 10;
-
-        // Wait for connection, 5s timeout
-        do
-        {
-            delay(500);
-            updateSerial();
-            Serial.print(".");
-            timeout--;
-        } while (timeout && WiFi.status() != WL_CONNECTED);
-
-        // not connected -> create hotspot
-        if (WiFi.status() != WL_CONNECTED)
-        {
-            Serial.print("\n\nCreating hotspot");
-
-            WiFi.mode(WIFI_AP);
-            delay(100);
-            WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-            uint32_t chipid = 0;
-            for (int i = 0; i < 17; i = i + 8)
-            {
-                chipid |= ((ESP.getEfuseMac() >> (40 - i)) & 0xff) << i;
-            }
-
-            char ap_ssid[25];
-            snprintf(ap_ssid, 26, "ESPUI-%08X", chipid);
-            WiFi.softAP(ap_ssid);
-
-            timeout = 5;
-
-            do
-            {
-                delay(500);
-                Serial.print(".");
-                timeout--;
-            } while (timeout);
-        }
+        // no data in EEPROM - loop camserial until we receive data
+        Serial.print(".");
+        delay(100);
+        loopCamserial();
+        ssidFromCam = getWifiSsid();
+        pskFromCam = getWifiPsk();
+        timeout--;
     }
-    dnsServer.start(DNS_PORT, "*", apIP);
 
-    Serial.println("\n\nWiFi parameters:");
-    Serial.print("Mode: ");
-    Serial.println(WiFi.getMode() == WIFI_AP ? "Station" : "Client");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.getMode() == WIFI_AP ? WiFi.softAPIP() : WiFi.localIP());
-}
+    if ((ssidFromCam == nullptr) || (pskFromCam == nullptr))
+    {
+        Serial.println("Timeout no WIFI data received!");
+        return;
+    }
 
-void webserverLoop()
-{
-    dnsServer.processNextRequest();
+    WiFi.begin(ssidFromCam->c_str(), pskFromCam->c_str());
+#endif
+
+    Serial.print("\nWaiting for WIFI connection");
+    timeout = 10;
+    // Wait for connection, 5s timeout
+    do
+    {
+        delay(500);
+        loopCamserial(); // make sure to receive data while connecting
+        updateSerial();
+        Serial.print(".");
+        timeout--;
+    } while (timeout && WiFi.status() != WL_CONNECTED);
+
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        Serial.println("WIFI connected!");
+    }
+    else
+    {
+        Serial.println("Unable to connect to WIFI!");
+    }
 }
