@@ -2,16 +2,8 @@
 #include "hoverserial.h"
 #include "ultrasonic.h"
 #include <arduino.h>
-int LeftMotorPin = 23;
-int rightMotorPin = 19;
+
 int valueLeft, valueRight = 0;
-void setupMotor()
-{
-    /*pinMode(LeftMotorPin, OUTPUT);
-    pinMode(rightMotorPin, OUTPUT);
-    analogWrite(LeftMotorPin, 0);
-    analogWrite(rightMotorPin, 0);*/
-}
 
 void forward()
 {
