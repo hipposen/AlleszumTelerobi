@@ -17,10 +17,10 @@ void setup(void)
     setupGui();
     setupOTA();
 }
-
+auto diff = millis();
 void loop(void)
 {
-    loopCamserial();
+    if ((millis() - diff) > 500){loopCamserial();diff = millis();}
     updateSerial();
     guiLoop();
     ArduinoOTA.handle();

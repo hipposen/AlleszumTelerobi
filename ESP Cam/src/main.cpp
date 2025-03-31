@@ -66,7 +66,7 @@ void setup() {
       WiFiManager wm;
  bool res;
     // res = wm.autoConnect(); // auto generated AP name from chipid
-    res = wm.autoConnect("ESP32_Cam_AP"); // anonymous ap
+    res = wm.autoConnect("FINDET DORRY"); // anonymous ap
     // res = wm.autoConnect("ESP32_Cam_AP","12345"); // password protected ap
 
     if(!res) {
@@ -199,10 +199,10 @@ void setup() {
   status();  
 }
 
-
+int statusCounter = 10;
 void loop() {
   // Do nothing. Everything is done in another task by the web server
   delay(1000);
-  Serial.println("loop"); //maddi und Kyrlie sind fies und kyrlie stinki
-  status();
+  if(statusCounter > 0){status();statusCounter--;}
+
 }

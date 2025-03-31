@@ -23,12 +23,12 @@ void setupWebserver()
     String *ssidFromCam = getWifiSsid();
     String *pskFromCam = getWifiPsk();
 
-    uint8_t timeout = 50;
+    uint8_t timeout = 10;
     while (((ssidFromCam == nullptr) || (pskFromCam == nullptr)) && (timeout > 0))
     {
         // no data in EEPROM - loop camserial until we receive data
         Serial.print(".");
-        delay(100);
+        delay(500);
         loopCamserial();
         ssidFromCam = getWifiSsid();
         pskFromCam = getWifiPsk();

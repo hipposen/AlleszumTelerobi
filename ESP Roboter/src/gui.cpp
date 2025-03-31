@@ -178,6 +178,7 @@ void updateBatteryValue(uint16_t elementId, float value, const char* color = "#2
     ESPUI.updateControl(control);
 }
 
+
 void guiLoop()
 {
     static long oldTime = 0;
@@ -205,6 +206,7 @@ void guiLoop()
         // ESPUI.print(millisLabelId, String(distance));
         Receive();
         intAkkuanzeige = berechneAkkuProzent (Feedback.batVoltage/100);
+        //intAkkuanzeige = getServoPos();
         if (intAkkuanzeige > 60) { updateBatteryValue(batteryLabel, intAkkuanzeige, "green");}
         if (intAkkuanzeige <=60 && intAkkuanzeige > 30) { updateBatteryValue(batteryLabel, intAkkuanzeige, "orange");}
         if (intAkkuanzeige <=30 && intAkkuanzeige >=0) { updateBatteryValue(batteryLabel, intAkkuanzeige, "red");}
