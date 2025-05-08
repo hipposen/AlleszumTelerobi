@@ -12,6 +12,8 @@ int testSwitchId;
 int intAkkuanzeige;
 bool useIpFromCam = false;
 
+int Speedfactor = 1;
+
 unsigned long lastMovementTime = 0;
 unsigned long idleThreshold = 3 * 60 * 60 * 1000; // 3 Stunden in Millisekunden
 //unsigned long idleThreshold = 1 * 60 * 1000; // 6 min in Millisekunden
@@ -19,7 +21,9 @@ unsigned long idleThreshold = 3 * 60 * 60 * 1000; // 3 Stunden in Millisekunden
 bool warningDisplayed = false;
 uint16_t warningLabel;
 uint16_t cameraLabel;
+uint16_t padLabel;
 uint16_t batteryLabel;
+uint16_t speedfactorLabel;
 String receivedIP = "espcam.local";
 
 struct AkkuSpannung {
@@ -62,7 +66,7 @@ void steuerungCallbackHandler(Control *sender, int value)
         break;
 
     case P_FOR_DOWN:
-        forward();
+        forward(Speedfactor);
         Serial.print("for down");
         break;
 
@@ -99,6 +103,19 @@ void steuerungCallbackHandler(Control *sender, int value)
     Serial.println(sender->id);
 }
 
+void limitCallbackHandler(Control *sender, int type)
+{
+        Serial.print("CB: id(");
+        Serial.print(sender->id);
+        Serial.print(") Type(");
+        Serial.print(type);
+        Serial.print(") '");
+        Serial.print(sender->label);
+        Serial.print("' = ");
+        Serial.println(sender->value.toInt());
+        Speedfactor=sender->value.toInt();
+}
+
 void servoCallbackHandler(Control *sender, int value, void *)
 {
     switch (value)
@@ -119,10 +136,15 @@ void setupGui()
     //warningLabel = ESPUI.label("Status",ControlColor::Alizarin, "Ready");
     //ESPUI.updateVisibility(warningLabel, false);
     cameraLabel = ESPUI.label("Kamera", ControlColor::Emerald, "<img src='espcam.local' style='width:100%; height:auto; max-width:640px;'>");
-    (void)ESPUI.padWithCenter("Steuerung", &steuerungCallbackHandler, ControlColor::Emerald);
-    (void)ESPUI.slider("Kopf", &servoCallbackHandler, ControlColor::Emerald, getServoPos(), 0, 100, nullptr);
-    batteryLabel = ESPUI.label("Battery", ControlColor::Emerald,"Test" );
+    padLabel = ESPUI.padWithCenter("Steuerung", &steuerungCallbackHandler, ControlColor::Emerald);
+    ESPUI.addControl(Button, "1", "1", Alizarin, padLabel, &limitCallbackHandler);
+    ESPUI.addControl(Button, "5", "5", Alizarin, padLabel, &limitCallbackHandler);
+    ESPUI.addControl(Button, "10", "10", Alizarin, padLabel, &limitCallbackHandler);
+    speedfactorLabel = ESPUI.addControl( ControlType::Label, "Speedfactor", String(Speedfactor), ControlColor::Emerald, padLabel);   
 
+    batteryLabel = ESPUI.label("Battery", ControlColor::Emerald,"Test" );
+    (void)ESPUI.slider("Kopf", &servoCallbackHandler, ControlColor::Emerald, getServoPos(), 0, 100, nullptr);
+    
     ESPUI.sliderContinuous = true;
     ESPUI.setElementStyle(cameraLabel, "background-color: transparent;");
 
@@ -178,6 +200,13 @@ void updateBatteryValue(uint16_t elementId, float value, const char* color = "#2
     ESPUI.updateControl(control);
 }
 
+void updateSpeedfactorValue(uint16_t elementId, int value) {
+    
+    Control* control = ESPUI.getControl(elementId);
+    control->value = value;
+    ESPUI.updateControl(control);
+}
+
 
 void guiLoop()
 {
@@ -201,6 +230,7 @@ void guiLoop()
 
     if (millis() - oldTime > 50)
     {
+
         // int distance = readUltrasonic();
         // ESPUI.addGraphPoint(graphId, distance);
         // ESPUI.print(millisLabelId, String(distance));
@@ -210,7 +240,7 @@ void guiLoop()
         if (intAkkuanzeige > 60) { updateBatteryValue(batteryLabel, intAkkuanzeige, "green");}
         if (intAkkuanzeige <=60 && intAkkuanzeige > 30) { updateBatteryValue(batteryLabel, intAkkuanzeige, "orange");}
         if (intAkkuanzeige <=30 && intAkkuanzeige >=0) { updateBatteryValue(batteryLabel, intAkkuanzeige, "red");}
-
+        updateSpeedfactorValue(speedfactorLabel,Speedfactor);
         oldTime = millis();
     }
 
