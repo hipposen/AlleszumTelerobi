@@ -87,11 +87,13 @@ void steuerungCallbackHandler(Control *sender, int value)
 
     case P_CENTER_DOWN:
         resetMotor();
+        Speedfactor=1;
         Serial.print("center down");
         break;
 
     case P_CENTER_UP:
         resetMotor();
+        Speedfactor=1;
         Serial.print("center up");
         break;
     }
@@ -138,6 +140,8 @@ void setupGui()
     cameraLabel = ESPUI.label("Kamera", ControlColor::Emerald, "<img src='espcam.local' style='width:100%; height:auto; max-width:640px;'>");
     padLabel = ESPUI.padWithCenter("Steuerung", &steuerungCallbackHandler, ControlColor::Emerald);
     ESPUI.addControl(Button, "1", "1", Alizarin, padLabel, &limitCallbackHandler);
+    ESPUI.addControl(Button, "2", "2", Alizarin, padLabel, &limitCallbackHandler);
+    ESPUI.addControl(Button, "3", "3", Alizarin, padLabel, &limitCallbackHandler);
     ESPUI.addControl(Button, "5", "5", Alizarin, padLabel, &limitCallbackHandler);
     ESPUI.addControl(Button, "10", "10", Alizarin, padLabel, &limitCallbackHandler);
     speedfactorLabel = ESPUI.addControl( ControlType::Label, "Speedfactor", String(Speedfactor), ControlColor::Emerald, padLabel);   
@@ -242,6 +246,9 @@ void guiLoop()
         if (intAkkuanzeige <=30 && intAkkuanzeige >=0) { updateBatteryValue(batteryLabel, intAkkuanzeige, "red");}
         updateSpeedfactorValue(speedfactorLabel,Speedfactor);
         oldTime = millis();
+        if (WiFi.status() != WL_CONNECTED) {
+            resetMotor();
+          }
     }
 
     unsigned long currentTime = millis();
